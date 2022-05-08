@@ -1,9 +1,11 @@
 //Node Module for inquirer to prompt user
 const inquirer = require('inquirer');
-//const mysql = require("mysql2");
+//Set up db connection
 const connection = require('./db/connection');
-//Access to DB class with query functions
-// const db = require('./db/index');
+//format table in console
+const table = require('console.table');
+
+
 
 // Start server after DB connection
 connection.connect(err => {
@@ -28,19 +30,153 @@ function promptMainMenu() {
                       "Add an employee",
                       "Update an employee role"]
         }
-    ]).then(console.log ("this is a test"))
-    // {
-    //     switch (selection.choices){
-    //         case "View all departments":
-    //             console.log("option 1 selected");
-    //             //db.getAllDepartments();
-    //         break;
+    ]).then( response => {
+        switch (response.option){
+            case "View all departments": 
+                getAllDepartments();
+                break;
+            case "View all roles":
+                getAllRoles();
+                break;
+            case "View all employees":
+                getAllEmployees();
+                break;
+            case "Add a department":
+                addDepartment();
+                break;
+            case "Add a role":
+                addRole();
+                break;
+            case "Add an employee":
+                addEmployee();
+                break;    
+            case "Update an employee role":
+                updateEmployeeRole();
+                break;  
+        }
+    }        
+    )   
+};
 
+// Get All Departments from the database
+function getAllDepartments () {
+    const sql = `SELECT * FROM department`;
+    
+    connection.query(sql, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        promptMainMenu();
+    });
+    
+};
 
-    //     }
-    // })
+//Get all roles from the database
+function getAllRoles () {
+    const sql = `SELECT role.title, role.id, department.name AS department_name, role.salary FROM role LEFT JOIN department ON role.department_id = department.id`;
+    connection.query(sql, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        promptMainMenu();
+    });
+};
+//Get all employees from the database
+function getAllEmployees(){
+    const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT( manager.first_name, ' ', manager.last_name) AS Manager_Name FROM employee LEFT JOIN employee manager ON employee.manager_id = manager.id LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id`;
+    connection.query(sql, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        promptMainMenu();
+    });
+};
 
-   
+// Add a department to the database
+function addDepartment(){
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'departmentName',
+            message: 'Please enter the department name'
+        }
+    ]).then(res =>{
+        const sql = `INSERT INTO department (name) VALUES (?)`;
+        const params = res.departmentName;
+        connection.query(sql, params, (err, res) => {
+            if (err) throw err;
+            console.log('Department successfully added!');                        
+            promptMainMenu();
+        })
 
-}
+    })
+    
+};
 
+// Add a role to the database
+function addRole(){
+    
+    //query all the departments
+    connection.query('SELECT * FROM department', (err, res)=>{
+        if (err) throw err;                    
+
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'roleName',
+                message: 'Please enter the role name'
+            },
+            {
+                type: 'input',
+                name: 'roleSalary',
+                message: 'Please enter the salary for this role'
+            },
+            {
+                type: 'list',
+                name: 'department',
+                message: 'What is the department of this role?',
+                choices: function() {
+                    var departmentArry = [];
+                    for (let i = 0; i < res.length; i++) {
+                        departmentArry.push(res[i].name);
+                    }
+                    return departmentArry;
+                }           
+            }            
+
+        ]).then(new_role => {
+            let departmentId;   
+            
+            // get id of department selected
+            for (let i=0; i < res.length; i++){
+                if (new_role.department == res[i].name){
+                    departmentId = res[i].id;
+                    console.log('department Id', departmentId); 
+                }
+            }
+            const sql = `INSERT INTO ROLE (title, salary, department_id) VALUES (?,?,?)`;
+            const params = [
+                new_role.roleName,
+                new_role.roleSalary,
+                departmentId
+            ]; 
+            connection.query(sql, params,(err, res)=>{
+                if (err) throw err;
+                console.log('Role successfully added!'); 
+                promptMainMenu();
+            });
+
+        });       
+        
+    });    
+};
+
+// Add an employee to the database
+function addEmployee(){
+    connection.query('SELECT * FROM role', (err, res)=>{
+        if (err) throw err;
+
+    })
+};
+
+// Update an employee role in the database
+function updateEmployeeRole(){
+    const sql = ``;
+};
