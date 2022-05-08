@@ -6,14 +6,18 @@ class DB {
     }
     // Get All Departments from the database
     getAllDepartments () {
-        return this.connection.promise().query(
-            " SELECT * FROM department"
-        );
+        console.log("connected to db queries");
+        connection.query(" SELECT * FROM department;"),
+        function(err, res){
+            if (err) throw err
+            console.log(res)
+        }
+       
     }
     //Get all roles from the database
     getAllRoles () {
         return this.connection.promise().query(
-            " SELECT role.title, role.id, department.name AS department_name, role.salary FROM role LEFT JOIN department ON role.department_id = department.id"
+            " SELECT role.title, role.id, department.name AS department_name, role.salary FROM role LEFT JOIN department ON role.department_id = department.id",
         );
     }
     //Get all employees from the database
