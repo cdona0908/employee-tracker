@@ -228,6 +228,68 @@ function addEmployee(){
 };
 
 // Update an employee role in the database
-function updateEmployeeRole(){
-    const sql = ``;
+function updateEmployeeRole(){ 
+         
+    let employeeArr = [];
+    let roleArr = [];
+
+    connection.query('SELECT * FROM role', (err, res)=>{
+        if (err) throw err;        
+        for (let i = 0; i < res.length; i++) {
+            roleArr.push(res[i].title);
+        }
+        return roleArr;
+    });
+
+    connection.query('SELECT employee.id, concat(employee.first_name, " " , employee.last_name) AS Employee FROM employee', (err, res)=>{
+        if (err) throw err;
+        
+        for (let i = 0; i < res.length; i++) {
+            employeeArr.push(res[i].Employee);
+        }
+        return employeeArr;
+    })
+    console.log(employeeArr);
+    console.log(roleArr);
+    inquirer.prompt([
+        {
+            
+            type: "list",
+            name: "employee",            
+            message: "Select the employee to edit?",
+            choices: employeeArr
+        },
+        {
+            type: "list",
+            name: "role",           
+            message: "What is their new role?",
+            choices: roleArr
+        }
+    ]).then( updated_employee =>{
+        let role_id;
+        let employee_id;
+
+        // get id of role selected
+        for (i=0; i < roleArr.length; i++){
+            if (updated_employee.role == roleArr[i].title){
+                role_id = roleArr[i].id;
+            }
+        }
+        // get id of employee selected
+        for (i=0; i < employeeArr.length; i++){
+            if (updated_employee.employee == employeeArr[i].Employee){
+                employee_id = employeeArr[i].id;
+            }
+        }
+        const sql = `UPDATE employee SET role_id = ? WHERE id = ? `;
+        const params = [
+            role_id,
+            employee_id
+        ];
+        connection.query(sql, params,(err, res) =>{
+            if(err) throw err;
+            console.log('Employee successfully updated!');
+            promptMainMenu();
+        })
+    });    
 };
