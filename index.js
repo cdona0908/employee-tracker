@@ -133,11 +133,11 @@ function addRole(){
                 name: 'department',
                 message: 'What is the department of this role?',
                 choices: function() {
-                    var departmentArry = [];
+                    var departmentArr = [];
                     for (let i = 0; i < res.length; i++) {
-                        departmentArry.push(res[i].name);
+                        departmentArr.push(res[i].name);
                     }
-                    return departmentArry;
+                    return departmentArr;
                 }           
             }            
 
@@ -172,8 +172,59 @@ function addRole(){
 function addEmployee(){
     connection.query('SELECT * FROM role', (err, res)=>{
         if (err) throw err;
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'first_name',
+                message: "Please enter the employee's name"
+            },
+            {
+                type: 'input',
+                name: 'last_name',
+                message: "Please enter the employee's last name"
+            },            
+            {
+                type: 'list',
+                name: 'role',
+                message: 'What is role of this employee?',
+                choices: function() {
+                    var roleArr = [];
+                    for (let i = 0; i < res.length; i++) {
+                        roleArr.push(res[i].title);
+                    }
+                    return roleArr;
+                }           
+            },
+            {
+                type: 'input',
+                name: 'manager_id',
+                message: "Please enter the employee's manager's ID"
+            }            
 
-    })
+        ]).then(new_employee => {
+            let role_id;
+            // get id of role selected
+            for (let i=0; i < res.length; i++){
+                if (new_employee.role == res[i].title){
+                    role_id = res[i].id;
+                    console.log(role_id);
+                }
+            }
+            const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id ) VALUES (?,?,?,?)`;
+            const params = [
+                new_employee.first_name,
+                new_employee.last_name,
+                role_id,
+                new_employee.manager_id
+            ];
+            connection.query(sql, params,(err,res)=>{
+                if(err) throw err;
+                console.log('Employee successfully added!');
+                promptMainMenu();
+            }) 
+        });
+
+    });
 };
 
 // Update an employee role in the database
