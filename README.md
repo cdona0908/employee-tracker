@@ -25,7 +25,10 @@
 
  Use the CLI to view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role.
 
- Walkthrough Video:
+ Walkthrough Video Link:
+
+ 
+ https://drive.google.com/file/d/1l58tYi2TiWP8few1h-yrRbROOf9ZOK1B/view
 
  ## Contributing
   
